@@ -1,7 +1,7 @@
 # ROC-Curves-Machine-Learning
-#Creating a ROC curve for a dataset and analysing its area under the code.
+Creating a ROC curve for a dataset and analysing its area under the code.
 
-# Importing the Libraries necessary for the assignment
+#Importing the Libraries necessary for the assignment
 library(lattice)
 library(caret)
 library(e1071)
@@ -12,17 +12,17 @@ library(gplots)
 #Reading the CSV file which was used in the last assignment Autoimmune.csv
 data <- read.csv(file="Autoimmune.csv",header=TRUE, sep=",")
 
-# seperate the data into training and validation data (test dataset)
+#seperate the data into training and validation data (test dataset)
 index <- createDataPartition(data$Autoimmune_Disease, p = 0.7, list = F )
 train <- data[index,]
 validation <- data[-index,]
 
-# Setting levels for both training and validation data
+#Setting levels for both training and validation data
 levels(train$Autoimmune_Disease) <- make.names(levels(factor(train$Autoimmune_Disease)))
 
 levels(validation$Autoimmune_Disease) <- make.names(levels(factor(validation$Autoimmune_Disease)))
 
-# Performing the 10 fold cross validation
+#Performing the 10 fold cross validation
 repeats <- 3
 numbers <- 10
 tunel <- 10
@@ -34,57 +34,57 @@ x <- trainControl(method = "repeatedcv",
                  classProbs = TRUE,
                  summaryFunction = twoClassSummary)
                  
-# Performing the Naive Bays Classifier
+#Performing the Naive Bays Classifier
 Naive_Bayes <- naiveBayes(Autoimmune_Disease~., data=data)
 nbprediction <- predict(Naive_Bayes, validation, type='raw')
 
-# Printing out the summary
+#Printing out the summary
 summary(Naive_Bayes)
 
-# Printing out the confusion matrix
+#Printing out the confusion matrix
 
 Naive_Bayes1=predict(Naive_Bayes,validation) 
 print(table(Naive_Bayes1,validation$Autoimmune_Disease)) 
 
-# Generating the score and ROC Curve
+#Generating the score and ROC Curve
 score <- nbprediction[, "positive"]
 actual.class <- validation$Autoimmune_Disease
 pred <- prediction(score, actual.class)
 nb.prff = performance(pred, "tpr", "fpr")
 plot(nb.prff, col = "green")
 
-# Calculating the Area under the curve (AUC)
+#Calculating the Area under the curve (AUC)
 auc <- performance(pred,"auc")
 print(auc@y.values[[1]])
 
-# Perfoming the KNN algorithm
+#Perfoming the KNN algorithm
 knnmodel <- train(Autoimmune_Disease~. , data = train, method = "knn",
                preProcess = c("center","scale"),
                trControl = x,
                metric = "ROC",
                tuneLength = tunel)
 
-# Summary of model
+#Summary of model
 knnmodel
 plot(knnmodel)
 
-# Validation
+#Validation
 valid_pred <- predict(knnmodel,validation, type = "prob")
 
 #Storing Model Performance Scores
 
 pred_val <-prediction(valid_pred[,2],validation$Autoimmune_Disease)
 
-# Plot the ROC curve
+#Plot the ROC curve
 perf_val <- performance(pred_val, "tpr", "fpr")
 plot(perf_val, col = "green", lwd = 1.5)
 
-# Calculating Area under Curve (AUC)
+#Calculating Area under Curve (AUC)
 perf_val <- performance(pred_val,"auc")
 print(perf_val@y.values[[1]])
 
 
-Methadology used in the contruction of the ROC Curve.
+# Methadology used in the contruction of the ROC Curve.
 
 1) After loading the packages required and given data set into the R interface the first step involves seperating the data into training and validation (test) data sets,  the createDataPartition() is used to partition the data. Here validation is the test data set with 1/3rd of the overall data set.
 
