@@ -6,30 +6,45 @@ Creating a ROC curve for a dataset and analysing its area under the code.
 library(lattice)
 
 library(caret)
+
 library(e1071)
+
 library(ggplot2)
+
 library(ROCR)
+
 library(gplots)
 
+
 #Reading the CSV file which was used in the last assignment Autoimmune.csv
+
 data <- read.csv(file="Autoimmune.csv",header=TRUE, sep=",")
 
 #seperate the data into training and validation data (test dataset)
+
 index <- createDataPartition(data$Autoimmune_Disease, p = 0.7, list = F )
+
 train <- data[index,]
+
 validation <- data[-index,]
 
 #Setting levels for both training and validation data
+
 levels(train$Autoimmune_Disease) <- make.names(levels(factor(train$Autoimmune_Disease)))
 
 levels(validation$Autoimmune_Disease) <- make.names(levels(factor(validation$Autoimmune_Disease)))
 
 #Performing the 10 fold cross validation
+
 repeats <- 3
+
 numbers <- 10
+
 tunel <- 10
 
+
 set.seed(1234)
+
 x <- trainControl(method = "repeatedcv",
                  number = numbers,
                  repeats = repeats,
@@ -37,29 +52,42 @@ x <- trainControl(method = "repeatedcv",
                  summaryFunction = twoClassSummary)
                  
 #Performing the Naive Bays Classifier
+
 Naive_Bayes <- naiveBayes(Autoimmune_Disease~., data=data)
+
 nbprediction <- predict(Naive_Bayes, validation, type='raw')
 
+
 #Printing out the summary
+
 summary(Naive_Bayes)
 
 #Printing out the confusion matrix
 
 Naive_Bayes1=predict(Naive_Bayes,validation) 
+
 print(table(Naive_Bayes1,validation$Autoimmune_Disease)) 
 
 #Generating the score and ROC Curve
+
 score <- nbprediction[, "positive"]
+
 actual.class <- validation$Autoimmune_Disease
+
 pred <- prediction(score, actual.class)
+
 nb.prff = performance(pred, "tpr", "fpr")
+
 plot(nb.prff, col = "green")
 
 #Calculating the Area under the curve (AUC)
+
 auc <- performance(pred,"auc")
+
 print(auc@y.values[[1]])
 
 #Perfoming the KNN algorithm
+
 knnmodel <- train(Autoimmune_Disease~. , data = train, method = "knn",
                preProcess = c("center","scale"),
                trControl = x,
@@ -68,9 +96,11 @@ knnmodel <- train(Autoimmune_Disease~. , data = train, method = "knn",
 
 #Summary of model
 knnmodel
+
 plot(knnmodel)
 
 #Validation
+
 valid_pred <- predict(knnmodel,validation, type = "prob")
 
 #Storing Model Performance Scores
@@ -78,11 +108,15 @@ valid_pred <- predict(knnmodel,validation, type = "prob")
 pred_val <-prediction(valid_pred[,2],validation$Autoimmune_Disease)
 
 #Plot the ROC curve
+
 perf_val <- performance(pred_val, "tpr", "fpr")
+
 plot(perf_val, col = "green", lwd = 1.5)
 
 #Calculating Area under Curve (AUC)
+
 perf_val <- performance(pred_val,"auc")
+
 print(perf_val@y.values[[1]])
 
 
